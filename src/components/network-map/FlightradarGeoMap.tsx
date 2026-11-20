@@ -17,11 +17,9 @@ import {
   RotateCcw,
   Layers,
   Plane,
-  AlertTriangle,
   CloudLightning,
   Eye,
   Crosshair,
-  Compass,
 } from 'lucide-react';
 
 export interface FlightradarGeoMapProps {
@@ -89,6 +87,11 @@ export const FlightradarGeoMap: React.FC<FlightradarGeoMapProps> = ({
     },
     [disruption, currentSimMinutes]
   );
+
+  const callbacksRef = useRef({ onSelectFlight, onSelectAirport });
+  useEffect(() => {
+    callbacksRef.current = { onSelectFlight, onSelectAirport };
+  }, [onSelectFlight, onSelectAirport]);
 
   // 1. Initialize MapLibre GL Map Instance
   useEffect(() => {
@@ -193,8 +196,8 @@ export const FlightradarGeoMap: React.FC<FlightradarGeoMapProps> = ({
       // If click was on a marker, it will be handled by marker event
       const target = e.originalEvent.target as HTMLElement;
       if (!target.closest('.flightradar-marker') && !target.closest('.airport-marker')) {
-        onSelectFlight(null);
-        onSelectAirport(null);
+        callbacksRef.current.onSelectFlight(null);
+        callbacksRef.current.onSelectAirport(null);
       }
     });
 
@@ -297,11 +300,24 @@ export const FlightradarGeoMap: React.FC<FlightradarGeoMapProps> = ({
 
       if (!markerRecord) {
         const el = document.createElement('div');
-        el.className = 'airport-marker cursor-pointer select-none';
+        el.className = 'airport-marker cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-[#00F0FF] rounded-full';
+        el.tabIndex = 0;
+        el.setAttribute('role', 'button');
+        el.setAttribute('aria-label', `Airport ${airport.iata}, ${airport.city}`);
+        
         el.addEventListener('click', e => {
           e.stopPropagation();
           onSelectAirport(airport.iata);
           onSelectFlight(null);
+        });
+
+        el.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            onSelectAirport(airport.iata);
+            onSelectFlight(null);
+          }
         });
 
         const marker = new MapLibreMarker({ element: el, anchor: 'center' })
@@ -418,11 +434,24 @@ export const FlightradarGeoMap: React.FC<FlightradarGeoMapProps> = ({
 
       if (!markerRecord) {
         const el = document.createElement('div');
-        el.className = 'flightradar-marker cursor-pointer select-none';
+        el.className = 'flightradar-marker cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-[#00F0FF] rounded-lg';
+        el.tabIndex = 0;
+        el.setAttribute('role', 'button');
+        el.setAttribute('aria-label', `Flight ${flight.flightNumber}, ${flight.origin} to ${flight.destination}`);
+
         el.addEventListener('click', e => {
           e.stopPropagation();
           onSelectFlight(flight.flightNumber);
           onSelectAirport(null);
+        });
+
+        el.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            onSelectFlight(flight.flightNumber);
+            onSelectAirport(null);
+          }
         });
 
         el.addEventListener('mouseenter', () => setHoveredFlight(flight));
@@ -512,7 +541,7 @@ export const FlightradarGeoMap: React.FC<FlightradarGeoMapProps> = ({
         });
       }
     }
-  }, [selectedFlightNumber, selectedAirportIata, mapLoaded]);
+  }, [selectedFlightNumber, selectedAirportIata, mapLoaded, flights, airportLookup, currentSimMinutes]);
 
   // Controls Handlers
   const handleZoomIn = () => mapRef.current?.zoomIn({ duration: 300 });
@@ -541,41 +570,46 @@ export const FlightradarGeoMap: React.FC<FlightradarGeoMapProps> = ({
       {/* MAP CANVAS CONTAINER */}
       <div
         ref={mapContainerRef}
+        role="application"
+        aria-label="Interactive Indian airspace and flight route radar"
         className="w-full h-full absolute inset-0"
         style={{ width: '100%', height: '100%' }}
       />
 
       {/* FLOATING TOP-RIGHT RADAR CONTROLS (FLIGHTRADAR24 STYLE) */}
-      <div className="absolute top-4 right-4 z-20 flex flex-col items-end gap-2 pointer-events-auto">
+      <div className="absolute top-4 right-4 z-20 flex flex-col items-end gap-2 pointer-events-auto" role="group" aria-label="Map Navigation Controls">
         {/* Zoom & View Controls Card */}
         <div className="flex flex-col bg-[#0F172A]/90 backdrop-blur-md border border-slate-700/70 rounded-lg shadow-2xl p-1 gap-1">
           <button
             onClick={handleZoomIn}
-            className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded transition"
+            aria-label="Zoom in on map"
+            className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none rounded transition"
             title="Zoom In"
           >
-            <ZoomIn className="w-4 h-4" />
+            <ZoomIn aria-hidden="true" className="w-4 h-4" />
           </button>
           <button
             onClick={handleZoomOut}
-            className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded transition"
+            aria-label="Zoom out on map"
+            className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none rounded transition"
             title="Zoom Out"
           >
-            <ZoomOut className="w-4 h-4" />
+            <ZoomOut aria-hidden="true" className="w-4 h-4" />
           </button>
           <div className="w-full h-px bg-slate-700/60 my-0.5" />
           <button
             onClick={handleResetView}
-            className="p-2 text-slate-300 hover:text-[#00F0FF] hover:bg-slate-800 rounded transition"
+            aria-label="Reset camera and center on India"
+            className="p-2 text-slate-300 hover:text-[#00F0FF] hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none rounded transition"
             title="Center Network (India)"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw aria-hidden="true" className="w-4 h-4" />
           </button>
         </div>
 
         {/* Route Filter Dropdown / Mode Toggle */}
         <div className="flex items-center bg-[#0F172A]/90 backdrop-blur-md border border-slate-700/70 rounded-lg shadow-2xl px-2 py-1 gap-1.5 text-[11px] font-mono">
-          <Layers className="w-3.5 h-3.5 text-[#00F0FF]" />
+          <Layers aria-hidden="true" className="w-3.5 h-3.5 text-[#00F0FF]" />
           <span className="text-slate-400">ROUTES:</span>
           <button
             onClick={() => {
@@ -583,7 +617,10 @@ export const FlightradarGeoMap: React.FC<FlightradarGeoMapProps> = ({
                 prev === 'ALL' ? 'ACTIVE_ONLY' : prev === 'ACTIVE_ONLY' ? 'SELECTED_ONLY' : 'ALL'
               );
             }}
-            className="px-2 py-0.5 rounded bg-slate-800 text-[#00F0FF] hover:bg-slate-700 font-semibold transition"
+            aria-label={`Toggle flight routes display. Currently showing ${
+              routeDisplayMode === 'ALL' ? 'all 70 routes' : routeDisplayMode === 'ACTIVE_ONLY' ? 'active airborne routes' : 'selected route only'
+            }`}
+            className="px-2 py-0.5 rounded bg-slate-800 text-[#00F0FF] hover:bg-slate-700 focus-visible:ring-1 focus-visible:ring-[#00F0FF] focus-visible:outline-none font-semibold transition"
           >
             {routeDisplayMode === 'ALL' ? 'ALL 70' : routeDisplayMode === 'ACTIVE_ONLY' ? 'AIRBORNE' : 'SELECTED'}
           </button>
@@ -592,14 +629,16 @@ export const FlightradarGeoMap: React.FC<FlightradarGeoMapProps> = ({
         {/* Airport Labels Toggle */}
         <button
           onClick={() => setShowAirportLabels(prev => !prev)}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-mono shadow-xl backdrop-blur-md transition ${
+          aria-label={`Toggle airport city labels. Currently ${showAirportLabels ? 'enabled' : 'disabled'}`}
+          aria-pressed={showAirportLabels}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-mono shadow-xl backdrop-blur-md focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none transition ${
             showAirportLabels
               ? 'bg-[#0F172A]/90 border-slate-700 text-slate-300'
               : 'bg-slate-900/60 border-slate-800 text-slate-500'
           }`}
           title="Toggle Airport City Labels"
         >
-          <Eye className="w-3.5 h-3.5" />
+          <Eye aria-hidden="true" className="w-3.5 h-3.5" />
           <span>LABELS: {showAirportLabels ? 'ON' : 'OFF'}</span>
         </button>
       </div>

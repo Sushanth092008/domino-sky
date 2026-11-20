@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   SimulationResult,
   RecoveryAction,
@@ -10,20 +10,14 @@ import {
   X,
   Bot,
   Sparkles,
-  ShieldCheck,
-  ShieldAlert,
   CheckCircle2,
   Undo2,
   Scale,
-  Clock,
-  Users,
-  AlertTriangle,
-  Plane,
 } from 'lucide-react';
 
 interface AiDispatcherDrawerProps {
   briefing: DispatcherBriefing;
-  currentResult: SimulationResult;
+  currentResult?: SimulationResult;
   appliedActions: RecoveryAction[];
   onApplyAction: (action: RecoveryAction) => void;
   onUndoAction: (actionId: string) => void;
@@ -33,26 +27,39 @@ interface AiDispatcherDrawerProps {
 
 export const AiDispatcherDrawer: React.FC<AiDispatcherDrawerProps> = ({
   briefing,
-  currentResult,
   appliedActions,
   onApplyAction,
   onUndoAction,
   onOpenCompareModal,
   onClose,
 }) => {
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-y-0 right-0 w-full max-w-lg bg-[#0A0F1D]/95 backdrop-blur-2xl border-l border-[#1E2D44] shadow-2xl z-50 flex flex-col text-slate-100 animate-in slide-in-from-right duration-200">
+    <aside
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="dispatcher-drawer-title"
+      className="fixed inset-y-0 right-0 w-full max-w-lg bg-[#0A0F1D]/95 backdrop-blur-2xl border-l border-[#1E2D44] shadow-2xl z-50 flex flex-col text-slate-100 animate-in slide-in-from-right duration-200"
+    >
       {/* Header */}
       <div className="p-4 border-b border-[#1E2D44] bg-[#0E1626]/80 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-[#00F0FF]">
+          <div aria-hidden="true" className="p-2 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-[#00F0FF]">
             <Bot className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-extrabold font-mono text-white tracking-wider">
+              <h2 id="dispatcher-drawer-title" className="text-sm font-extrabold font-mono text-white tracking-wider">
                 DOMINO AI DISPATCHER
-              </h3>
+              </h2>
               <span className="text-[9px] font-mono font-bold bg-[#00F0FF]/15 text-[#00F0FF] px-1.5 py-0.2 rounded border border-[#00F0FF]/30">
                 TACTICAL OPS
               </span>
@@ -66,9 +73,10 @@ export const AiDispatcherDrawer: React.FC<AiDispatcherDrawerProps> = ({
         <button
           type="button"
           onClick={onClose}
-          className="p-1.5 text-slate-400 hover:text-white hover:bg-[#1E2D44] rounded-lg transition-colors"
+          aria-label="Close AI Dispatcher drawer"
+          className="p-1.5 text-slate-400 hover:text-white hover:bg-[#1E2D44] focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none rounded-lg transition-colors"
         >
-          <X className="w-5 h-5" />
+          <X aria-hidden="true" className="w-5 h-5" />
         </button>
       </div>
 
@@ -245,6 +253,6 @@ export const AiDispatcherDrawer: React.FC<AiDispatcherDrawerProps> = ({
           Full Before vs After Audit Modal
         </button>
       </div>
-    </div>
+    </aside>
   );
 };

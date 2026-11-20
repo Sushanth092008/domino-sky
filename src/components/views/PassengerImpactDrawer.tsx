@@ -1,12 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { SimulatedPassengerConnection, SimulationResult } from '../../types/aviation';
-import { X, Users, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
+import { X, Users } from 'lucide-react';
 
 interface PassengerImpactDrawerProps {
   connections: SimulatedPassengerConnection[];
-  result: SimulationResult;
+  result?: SimulationResult;
   onSelectFlight: (flightNumber: string) => void;
   onClose: () => void;
 }
@@ -17,21 +17,35 @@ export const PassengerImpactDrawer: React.FC<PassengerImpactDrawerProps> = ({
   onSelectFlight,
   onClose,
 }) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const missedConns = connections.filter(c => c.isMissed);
   const strandedConns = connections.filter(c => c.isStranded);
   const maintainedConns = connections.filter(c => !c.isMissed);
 
   return (
-    <div className="fixed inset-y-0 left-0 w-full max-w-xl bg-[#0A0F1D]/98 backdrop-blur-2xl border-r border-[#1E2D44] shadow-2xl z-50 flex flex-col text-slate-100 animate-in slide-in-from-left duration-200">
+    <aside
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="passenger-impact-title"
+      className="fixed inset-y-0 left-0 w-full max-w-xl bg-[#0A0F1D]/98 backdrop-blur-2xl border-r border-[#1E2D44] shadow-2xl z-50 flex flex-col text-slate-100 animate-in slide-in-from-left duration-200"
+    >
       <div className="p-4 border-b border-[#1E2D44] bg-[#0E1626]/80 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <Users className="w-5 h-5 text-[#00F0FF]" />
+          <Users aria-hidden="true" className="w-5 h-5 text-[#00F0FF]" />
           <div>
-            <h3 className="text-sm font-extrabold font-mono text-white tracking-wider">
+            <h3 id="passenger-impact-title" className="text-sm font-extrabold font-mono text-white tracking-wider">
               PASSENGER CONNECTIONS & STRANDING AUDIT
             </h3>
             <span className="text-[10px] font-mono text-slate-400">
               21 Booked Multi-Leg Itineraries (Minimum Connect Time: 45m)
+              {result ? ` • ${result.affectedPassengersCount} Pax Impacted` : ''}
             </span>
           </div>
         </div>
@@ -39,9 +53,10 @@ export const PassengerImpactDrawer: React.FC<PassengerImpactDrawerProps> = ({
         <button
           type="button"
           onClick={onClose}
-          className="p-1.5 text-slate-400 hover:text-white hover:bg-[#1E2D44] rounded-lg transition-colors"
+          aria-label="Close passenger connections audit drawer"
+          className="p-1.5 text-slate-400 hover:text-white hover:bg-[#1E2D44] focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none rounded-lg transition-colors"
         >
-          <X className="w-5 h-5" />
+          <X aria-hidden="true" className="w-5 h-5" />
         </button>
       </div>
 
@@ -103,18 +118,20 @@ export const PassengerImpactDrawer: React.FC<PassengerImpactDrawerProps> = ({
                     onSelectFlight(c.inboundFlightNumber);
                     onClose();
                   }}
-                  className="hover:text-[#00F0FF] underline"
+                  aria-label={`Inspect inbound flight ${c.inboundFlightNumber}`}
+                  className="hover:text-[#00F0FF] underline focus-visible:ring-1 focus-visible:ring-[#00F0FF] focus-visible:outline-none rounded px-1"
                 >
                   Inbound: {c.inboundFlightNumber}
                 </button>
-                <span className="text-slate-500">→</span>
+                <span className="text-slate-500" aria-hidden="true">→</span>
                 <button
                   type="button"
                   onClick={() => {
                     onSelectFlight(c.connectingFlightNumber);
                     onClose();
                   }}
-                  className="hover:text-[#00F0FF] underline"
+                  aria-label={`Inspect outbound flight ${c.connectingFlightNumber}`}
+                  className="hover:text-[#00F0FF] underline focus-visible:ring-1 focus-visible:ring-[#00F0FF] focus-visible:outline-none rounded px-1"
                 >
                   Outbound: {c.connectingFlightNumber}
                 </button>
@@ -130,6 +147,6 @@ export const PassengerImpactDrawer: React.FC<PassengerImpactDrawerProps> = ({
           );
         })}
       </div>
-    </div>
+    </aside>
   );
 };

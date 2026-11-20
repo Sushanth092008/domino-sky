@@ -7,10 +7,6 @@ import {
   Search,
   RotateCcw,
   Database,
-  CloudLightning,
-  Clock,
-  Sparkles,
-  Layers,
 } from 'lucide-react';
 
 interface FlightradarNavbarProps {
@@ -43,18 +39,24 @@ export const FlightradarNavbar: React.FC<FlightradarNavbarProps> = ({
   };
 
   return (
-    <header className="w-full h-12 bg-[#0A0F1D] border-b border-[#1E2D44] px-4 flex items-center justify-between gap-4 z-40 select-none flex-shrink-0">
+    <header
+      role="banner"
+      className="w-full h-12 bg-[#0A0F1D] border-b border-[#1E2D44] px-4 flex items-center justify-between gap-4 z-40 select-none flex-shrink-0"
+    >
       {/* Left: Flightradar24-Style Brand */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 cursor-pointer">
-          <div className="w-7 h-7 rounded-lg bg-[#141F30] border border-[#1E2D44] flex items-center justify-center text-[#F1C40F] shadow-sm">
+        <div className="flex items-center gap-2">
+          <div
+            aria-hidden="true"
+            className="w-7 h-7 rounded-lg bg-[#141F30] border border-[#1E2D44] flex items-center justify-center text-[#F1C40F] shadow-sm"
+          >
             <Plane className="w-4 h-4 transform -rotate-45" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-sm tracking-wider text-white font-mono">
+              <h1 className="font-extrabold text-sm tracking-wider text-white font-mono m-0 p-0 inline">
                 DOMINO SKY
-              </span>
+              </h1>
               <span className="text-[9px] font-mono font-bold bg-[#F1C40F]/15 text-[#F1C40F] px-1.5 py-0.2 rounded border border-[#F1C40F]/30">
                 RADAR
               </span>
@@ -66,20 +68,26 @@ export const FlightradarNavbar: React.FC<FlightradarNavbarProps> = ({
       {/* Center: Global Search & Simulation Clock */}
       <div className="flex items-center gap-4 flex-1 max-w-xl justify-center">
         {/* Search Bar */}
-        <form onSubmit={handleSearchSubmit} className="relative w-72">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+        <form onSubmit={handleSearchSubmit} role="search" aria-label="Flight and Airport Search" className="relative w-72">
+          <Search aria-hidden="true" className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
+            id="global-flight-search"
             type="text"
             placeholder="Search flight (DS0101), airport (BOM), tail..."
+            aria-label="Search flight number, airport code, or aircraft tail"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-[#101827] border border-[#1E2D44] focus:border-[#F1C40F]/60 rounded-lg pl-8 pr-3 py-1 text-xs text-white placeholder-slate-500 focus:outline-none font-mono"
+            className="w-full bg-[#101827] border border-[#1E2D44] focus:border-[#00F0FF] focus-visible:ring-1 focus-visible:ring-[#00F0FF] rounded-lg pl-8 pr-3 py-1 text-xs text-white placeholder-slate-500 focus:outline-none font-mono transition-all"
           />
         </form>
 
         {/* Digital Clock */}
-        <div className="hidden md:flex items-center gap-2 bg-[#101827] border border-[#1E2D44] px-3 py-1 rounded-lg text-xs font-mono">
-          <span className="w-2 h-2 rounded-full bg-[#00F0FF] animate-pulse"></span>
+        <div
+          role="timer"
+          aria-label={`Current simulation time is ${simulationTime} Indian Standard Time`}
+          className="hidden md:flex items-center gap-2 bg-[#101827] border border-[#1E2D44] px-3 py-1 rounded-lg text-xs font-mono"
+        >
+          <span aria-hidden="true" className="w-2 h-2 rounded-full bg-[#00F0FF] animate-pulse"></span>
           <span className="text-slate-400 text-[10.5px]">SIM TIME:</span>
           <strong className="text-white font-bold">{simulationTime} IST</strong>
         </div>
@@ -88,20 +96,24 @@ export const FlightradarNavbar: React.FC<FlightradarNavbarProps> = ({
       {/* Right: Operational Status, Scenario Selector & Tools */}
       <div className="flex items-center gap-2.5">
         {/* Status Badge */}
-        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold border bg-[#101827] border-[#1E2D44]">
+        <div
+          role="status"
+          aria-live="polite"
+          className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold border bg-[#101827] border-[#1E2D44]"
+        >
           {isRecovered ? (
             <span className="flex items-center gap-1 text-[#10B981]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
+              <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
               RECOVERY ACTIVE
             </span>
           ) : isDisrupted ? (
             <span className="flex items-center gap-1 text-[#F59E0B]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] animate-pulse"></span>
+              <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] animate-pulse"></span>
               DISRUPTED ({result.disruption?.airport})
             </span>
           ) : (
             <span className="flex items-center gap-1 text-[#00F0FF]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#00F0FF]"></span>
+              <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-[#00F0FF]"></span>
               FLEET NOMINAL
             </span>
           )}
@@ -109,6 +121,7 @@ export const FlightradarNavbar: React.FC<FlightradarNavbarProps> = ({
 
         {/* Scenario Selector Dropdown */}
         <select
+          aria-label="Select disruption scenario preset"
           value={
             result.disruption
               ? `${result.disruption.airport}-${result.disruption.type}-${result.disruption.durationMinutes}`
@@ -156,7 +169,7 @@ export const FlightradarNavbar: React.FC<FlightradarNavbarProps> = ({
               onResetSimulation();
             }
           }}
-          className="bg-[#101827] border border-[#1E2D44] hover:border-slate-500 rounded-lg px-2.5 py-1 text-slate-200 text-xs font-mono focus:outline-none focus:border-[#F1C40F] transition-colors"
+          className="bg-[#101827] border border-[#1E2D44] hover:border-slate-500 focus-visible:ring-1 focus-visible:ring-[#00F0FF] rounded-lg px-2.5 py-1 text-slate-200 text-xs font-mono focus:outline-none focus:border-[#00F0FF] transition-colors"
         >
           <option value="NONE">Scenario: Clear Weather</option>
           <option value="BOM-THUNDERSTORM-90">Mumbai 90m Supercell (14:00)</option>
@@ -169,10 +182,11 @@ export const FlightradarNavbar: React.FC<FlightradarNavbarProps> = ({
         <button
           type="button"
           onClick={onOpenDatasetModal}
-          className="flex items-center gap-1 px-2.5 py-1 bg-[#101827] hover:bg-[#141F30] text-slate-300 hover:text-white border border-[#1E2D44] rounded-lg text-xs font-mono transition-colors"
+          aria-label="Manage datasets, import or export official flight network"
+          className="flex items-center gap-1 px-2.5 py-1 bg-[#101827] hover:bg-[#141F30] focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none text-slate-300 hover:text-white border border-[#1E2D44] rounded-lg text-xs font-mono transition-colors"
           title="Import or Export Dataset (JSON / CSV)"
         >
-          <Database className="w-3.5 h-3.5 text-[#00F0FF]" />
+          <Database aria-hidden="true" className="w-3.5 h-3.5 text-[#00F0FF]" />
           <span className="hidden sm:inline">Data</span>
         </button>
 
@@ -180,10 +194,11 @@ export const FlightradarNavbar: React.FC<FlightradarNavbarProps> = ({
         <button
           type="button"
           onClick={onResetSimulation}
-          className="p-1.5 bg-[#101827] hover:bg-[#141F30] text-slate-400 hover:text-white border border-[#1E2D44] rounded-lg text-xs font-mono transition-colors"
+          aria-label="Reset simulation to nominal baseline schedule"
+          className="p-1.5 bg-[#101827] hover:bg-[#141F30] focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none text-slate-400 hover:text-white border border-[#1E2D44] rounded-lg text-xs font-mono transition-colors"
           title="Reset All Simulation"
         >
-          <RotateCcw className="w-3.5 h-3.5" />
+          <RotateCcw aria-hidden="true" className="w-3.5 h-3.5" />
         </button>
       </div>
     </header>

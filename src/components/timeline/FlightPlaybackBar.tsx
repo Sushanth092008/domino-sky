@@ -6,12 +6,9 @@ import { DisruptionInput } from '../../types/aviation';
 import {
   Play,
   Pause,
-  RotateCcw,
-  FastForward,
   Clock,
   ChevronLeft,
   ChevronRight,
-  Flame,
 } from 'lucide-react';
 
 interface FlightPlaybackBarProps {
@@ -68,38 +65,45 @@ export const FlightPlaybackBar: React.FC<FlightPlaybackBarProps> = ({
     : null;
 
   return (
-    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 bg-[#0A0F1D]/90 backdrop-blur-2xl px-5 py-2.5 rounded-2xl border border-[#1E2D44] shadow-2xl select-none max-w-2xl w-full mx-4">
+    <section
+      role="region"
+      aria-label="Simulation Time & Playback Controls"
+      className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 bg-[#0A0F1D]/90 backdrop-blur-2xl px-5 py-2.5 rounded-2xl border border-[#1E2D44] shadow-2xl select-none max-w-2xl w-full mx-4"
+    >
       {/* 1. Play / Pause & Step Controls */}
       <div className="flex items-center gap-1.5 flex-shrink-0">
         <button
           type="button"
           onClick={stepBackward}
-          className="p-1.5 text-slate-400 hover:text-white hover:bg-[#141F30] rounded-lg transition-colors"
+          aria-label="Step simulation backward 15 minutes"
+          className="p-1.5 text-slate-400 hover:text-white hover:bg-[#141F30] focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none rounded-lg transition-colors"
           title="Step back 15m"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft aria-hidden="true" className="w-4 h-4" />
         </button>
 
         <button
           type="button"
           onClick={() => setIsPlaying(!isPlaying)}
-          className={`p-2 rounded-xl transition-all shadow-sm ${
+          aria-label={isPlaying ? 'Pause simulation playback' : 'Start simulation playback'}
+          className={`p-2 rounded-xl transition-all shadow-sm focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none ${
             isPlaying
               ? 'bg-[#F1C40F] text-[#080D18]'
               : 'bg-[#141F30] text-[#00F0FF] hover:bg-[#1E2D44] border border-[#1E2D44]'
           }`}
           title={isPlaying ? 'Pause simulation' : 'Play simulation playback'}
         >
-          {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
+          {isPlaying ? <Pause aria-hidden="true" className="w-4 h-4 fill-current" /> : <Play aria-hidden="true" className="w-4 h-4 fill-current" />}
         </button>
 
         <button
           type="button"
           onClick={stepForward}
-          className="p-1.5 text-slate-400 hover:text-white hover:bg-[#141F30] rounded-lg transition-colors"
+          aria-label="Step simulation forward 15 minutes"
+          className="p-1.5 text-slate-400 hover:text-white hover:bg-[#141F30] focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none rounded-lg transition-colors"
           title="Step forward 15m"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight aria-hidden="true" className="w-4 h-4" />
         </button>
       </div>
 
@@ -132,12 +136,17 @@ export const FlightPlaybackBar: React.FC<FlightPlaybackBarProps> = ({
           max={END_MINS}
           step={5}
           value={currentMinutes}
+          aria-label="Simulation operational time scrubber"
+          aria-valuemin={START_MINS}
+          aria-valuemax={END_MINS}
+          aria-valuenow={currentMinutes}
+          aria-valuetext={`${simulationTime} Indian Standard Time`}
           onChange={e => onTimeChange(minutesToTime(Number(e.target.value)))}
           className="absolute inset-0 w-full opacity-0 cursor-pointer h-full"
         />
 
         {/* Hour Labels */}
-        <div className="flex justify-between text-[9px] font-mono text-slate-500 mt-1">
+        <div aria-hidden="true" className="flex justify-between text-[9px] font-mono text-slate-500 mt-1">
           <span>06:00</span>
           <span>09:00</span>
           <span>12:00</span>
@@ -149,13 +158,15 @@ export const FlightPlaybackBar: React.FC<FlightPlaybackBarProps> = ({
       </div>
 
       {/* 3. Speed Multiplier Selector */}
-      <div className="flex items-center gap-1 bg-[#101827] p-0.5 rounded-lg border border-[#1E2D44] text-[10px] font-mono flex-shrink-0">
+      <div className="flex items-center gap-1 bg-[#101827] p-0.5 rounded-lg border border-[#1E2D44] text-[10px] font-mono flex-shrink-0" role="group" aria-label="Playback Speed">
         {[1, 2, 5, 10].map(s => (
           <button
             key={s}
             type="button"
             onClick={() => setSpeedMultiplier(s)}
-            className={`px-1.5 py-0.5 rounded transition-colors ${
+            aria-label={`Set speed to ${s} times`}
+            aria-pressed={speedMultiplier === s}
+            className={`px-1.5 py-0.5 rounded transition-colors focus-visible:ring-1 focus-visible:ring-[#00F0FF] focus-visible:outline-none ${
               speedMultiplier === s
                 ? 'bg-[#141F30] text-[#00F0FF] font-bold border border-[#00F0FF]/30'
                 : 'text-slate-400 hover:text-white'
@@ -167,11 +178,15 @@ export const FlightPlaybackBar: React.FC<FlightPlaybackBarProps> = ({
       </div>
 
       {/* 4. Digital Time Display */}
-      <div className="flex items-center gap-1.5 bg-[#101827] px-3 py-1.5 rounded-xl border border-[#1E2D44] font-mono text-xs flex-shrink-0">
-        <Clock className="w-3.5 h-3.5 text-[#00F0FF]" />
+      <div
+        role="timer"
+        aria-label={`Simulation clock: ${simulationTime} IST`}
+        className="flex items-center gap-1.5 bg-[#101827] px-3 py-1.5 rounded-xl border border-[#1E2D44] font-mono text-xs flex-shrink-0"
+      >
+        <Clock aria-hidden="true" className="w-3.5 h-3.5 text-[#00F0FF]" />
         <span className="font-extrabold text-white">{simulationTime}</span>
         <span className="text-[10px] text-slate-400">IST</span>
       </div>
-    </div>
+    </section>
   );
 };

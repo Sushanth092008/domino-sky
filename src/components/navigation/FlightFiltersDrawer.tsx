@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { SimulatedFlight } from '../../types/aviation';
-import { X, Filter, Plane, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { X, Filter } from 'lucide-react';
 
 interface FlightFiltersDrawerProps {
   filterMode: 'ALL' | 'AIRBORNE' | 'DELAYED' | 'CANCELLED' | 'RECOVERED';
@@ -23,23 +23,38 @@ export const FlightFiltersDrawer: React.FC<FlightFiltersDrawerProps> = ({
   airborneCount,
   onClose,
 }) => {
+  // Close drawer on Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const delayedCount = flights.filter(f => f.departureDelayMinutes >= 15).length;
   const cancelledCount = flights.filter(f => f.status === 'CANCELLED').length;
   const recoveredCount = flights.filter(f => f.originalAssignedTail !== f.aircraftTail).length;
 
   return (
-    <div className="fixed inset-y-0 left-0 w-full max-w-sm bg-[#0A0F1D]/95 backdrop-blur-2xl border-r border-[#1E2D44] shadow-2xl z-50 flex flex-col text-slate-100 animate-in slide-in-from-left duration-200">
+    <aside
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="filters-drawer-title"
+      className="fixed inset-y-0 left-0 w-full max-w-sm bg-[#0A0F1D]/95 backdrop-blur-2xl border-r border-[#1E2D44] shadow-2xl z-50 flex flex-col text-slate-100 animate-in slide-in-from-left duration-200"
+    >
       <div className="p-4 border-b border-[#1E2D44] bg-[#0E1626]/80 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-[#F1C40F]" />
-          <h3 className="text-sm font-bold font-mono text-white tracking-wider">FLIGHT RADAR FILTERS</h3>
+          <Filter aria-hidden="true" className="w-4 h-4 text-[#F1C40F]" />
+          <h2 id="filters-drawer-title" className="text-sm font-bold font-mono text-white tracking-wider">FLIGHT RADAR FILTERS</h2>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="p-1 text-slate-400 hover:text-white hover:bg-[#1E2D44] rounded-lg transition-colors"
+          aria-label="Close flight radar filters drawer"
+          className="p-1 text-slate-400 hover:text-white hover:bg-[#1E2D44] focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none rounded-lg transition-colors"
         >
-          <X className="w-5 h-5" />
+          <X aria-hidden="true" className="w-5 h-5" />
         </button>
       </div>
 
@@ -93,6 +108,6 @@ export const FlightFiltersDrawer: React.FC<FlightFiltersDrawerProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </aside>
   );
 };

@@ -2,7 +2,7 @@
 // Generates tactical natural language briefings while strictly consuming deterministic engine metrics
 
 import { NextRequest, NextResponse } from 'next/server';
-import { SimulationResult, RecoveryAction } from '@/types/aviation';
+import { SimulationResult } from '@/types/aviation';
 import { synthesizeOperationsBriefing, generateCandidateRecoveryActions } from '@/services/ai-dispatcher';
 import { OFFICIAL_FLIGHTS, OFFICIAL_SPARES } from '@/data/official-dataset';
 

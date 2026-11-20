@@ -1,18 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Airport, SimulatedFlight, DisruptionInput } from '../../types/aviation';
 import { timeToMinutes } from '../../engine/time-utils';
 import {
   X,
   Plane,
   AlertTriangle,
-  ArrowRight,
-  Clock,
   CloudLightning,
   MapPin,
-  ShieldCheck,
-  Compass,
 } from 'lucide-react';
 
 interface AirportDetailsDrawerProps {
@@ -34,6 +30,15 @@ export const AirportDetailsDrawer: React.FC<AirportDetailsDrawerProps> = ({
   onSelectFlight,
   onTriggerDisruptionAtAirport,
 }) => {
+  // Close drawer on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   if (!airport) return null;
 
   const currentSimMins = timeToMinutes(simulationTime);
@@ -57,16 +62,21 @@ export const AirportDetailsDrawer: React.FC<AirportDetailsDrawerProps> = ({
   const totalDelayMins = departures.reduce((sum, f) => sum + f.departureDelayMinutes, 0);
 
   return (
-    <div className="fixed inset-y-0 right-0 w-full max-w-md bg-[#0D1524] border-l border-[#1E2D44] shadow-2xl z-50 flex flex-col text-slate-200 animate-in slide-in-from-right duration-200">
+    <aside
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="airport-drawer-title"
+      className="fixed inset-y-0 right-0 w-full max-w-md bg-[#0D1524] border-l border-[#1E2D44] shadow-2xl z-50 flex flex-col text-slate-200 animate-in slide-in-from-right duration-200"
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-[#1E2D44] bg-[#101827]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#141F30] border border-[#1E2D44] flex items-center justify-center text-[#00F0FF]">
+          <div aria-hidden="true" className="w-10 h-10 rounded-xl bg-[#141F30] border border-[#1E2D44] flex items-center justify-center text-[#00F0FF]">
             <MapPin className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold font-mono tracking-tight text-white">{airport.iata}</h2>
+              <h2 id="airport-drawer-title" className="text-lg font-bold font-mono tracking-tight text-white">{airport.iata}</h2>
               <span className="text-xs font-mono text-slate-400">({airport.icao})</span>
               {airport.isHub && (
                 <span className="text-[10px] font-mono font-bold bg-[#00F0FF]/15 text-[#00F0FF] px-1.5 py-0.5 rounded border border-[#00F0FF]/30">
@@ -79,10 +89,12 @@ export const AirportDetailsDrawer: React.FC<AirportDetailsDrawerProps> = ({
           </div>
         </div>
         <button
+          type="button"
           onClick={onClose}
-          className="p-1.5 text-slate-400 hover:text-white hover:bg-[#141F30] rounded-lg transition-colors"
+          aria-label={`Close ${airport.iata} airport details drawer`}
+          className="p-1.5 text-slate-400 hover:text-white hover:bg-[#141F30] focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none rounded-lg transition-colors"
         >
-          <X className="w-5 h-5" />
+          <X aria-hidden="true" className="w-5 h-5" />
         </button>
       </div>
 
@@ -159,10 +171,12 @@ export const AirportDetailsDrawer: React.FC<AirportDetailsDrawerProps> = ({
               const isCancelled = flight.status === 'CANCELLED';
 
               return (
-                <div
+                <button
+                  type="button"
                   key={flight.flightNumber}
                   onClick={() => onSelectFlight(flight.flightNumber)}
-                  className={`p-2.5 rounded-lg border cursor-pointer transition-all flex items-center justify-between text-xs ${
+                  aria-label={`Inspect flight ${flight.flightNumber} to ${flight.destination}, scheduled at ${flight.scheduledDeparture}`}
+                  className={`w-full text-left p-2.5 rounded-lg border cursor-pointer transition-all flex items-center justify-between text-xs focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none ${
                     isCancelled
                       ? 'bg-[#EF4444]/10 border-[#EF4444]/30 text-red-200'
                       : isDelayed
@@ -171,7 +185,7 @@ export const AirportDetailsDrawer: React.FC<AirportDetailsDrawerProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <Plane className="w-3.5 h-3.5 text-[#00F0FF]" />
+                    <Plane aria-hidden="true" className="w-3.5 h-3.5 text-[#00F0FF]" />
                     <span className="font-mono font-bold text-white">{flight.flightNumber}</span>
                     <span className="text-slate-400 font-mono">→ {flight.destination}</span>
                   </div>
@@ -184,7 +198,7 @@ export const AirportDetailsDrawer: React.FC<AirportDetailsDrawerProps> = ({
                       <span className="text-[#EF4444] font-bold">CAN</span>
                     )}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -204,6 +218,6 @@ export const AirportDetailsDrawer: React.FC<AirportDetailsDrawerProps> = ({
           </button>
         </div>
       )}
-    </div>
+    </aside>
   );
 };

@@ -4,7 +4,6 @@
 import {
   SimulatedFlight,
   SimulatedPassengerConnection,
-  CrewAssignment,
   Airport,
   ActiveOperationalMetrics,
 } from '../types/aviation';

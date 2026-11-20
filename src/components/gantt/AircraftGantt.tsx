@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { SimulatedFlight } from '../../types/aviation';
-import { timeToMinutes, minutesToTime } from '../../engine/time-utils';
+import { timeToMinutes } from '../../engine/time-utils';
 import { Plane, Clock, AlertTriangle } from 'lucide-react';
 
 interface AircraftGanttProps {

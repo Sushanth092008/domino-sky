@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Airport, SimulatedFlight, DisruptionInput } from '../../types/aviation';
 import { timeToMinutes } from '../../engine/time-utils';
-import { X, MapPin, AlertTriangle, CloudLightning } from 'lucide-react';
+import { X, MapPin } from 'lucide-react';
 
 interface AirportsListDrawerProps {
   airports: Airport[];
@@ -22,23 +22,37 @@ export const AirportsListDrawer: React.FC<AirportsListDrawerProps> = ({
   onSelectAirport,
   onClose,
 }) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const currentSimMinutes = timeToMinutes(simulationTime);
 
   return (
-    <div className="fixed inset-y-0 left-0 w-full max-w-sm bg-[#0A0F1D]/95 backdrop-blur-2xl border-r border-[#1E2D44] shadow-2xl z-50 flex flex-col text-slate-100 animate-in slide-in-from-left duration-200">
+    <aside
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="airports-list-title"
+      className="fixed inset-y-0 left-0 w-full max-w-sm bg-[#0A0F1D]/95 backdrop-blur-2xl border-r border-[#1E2D44] shadow-2xl z-50 flex flex-col text-slate-100 animate-in slide-in-from-left duration-200"
+    >
       <div className="p-4 border-b border-[#1E2D44] bg-[#0E1626]/80 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-[#00F0FF]" />
-          <h3 className="text-sm font-bold font-mono text-white tracking-wider">
+          <MapPin aria-hidden="true" className="w-4 h-4 text-[#00F0FF]" />
+          <h3 id="airports-list-title" className="text-sm font-bold font-mono text-white tracking-wider">
             16 AIRPORT HUBS
           </h3>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="p-1 text-slate-400 hover:text-white hover:bg-[#1E2D44] rounded-lg transition-colors"
+          aria-label="Close airport hubs drawer"
+          className="p-1 text-slate-400 hover:text-white hover:bg-[#1E2D44] focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none rounded-lg transition-colors"
         >
-          <X className="w-5 h-5" />
+          <X aria-hidden="true" className="w-5 h-5" />
         </button>
       </div>
 
@@ -54,13 +68,15 @@ export const AirportsListDrawer: React.FC<AirportsListDrawerProps> = ({
           const delayed = deps.filter(f => f.departureDelayMinutes >= 15);
 
           return (
-            <div
+            <button
+              type="button"
               key={airport.iata}
               onClick={() => {
                 onSelectAirport(airport.iata);
                 onClose();
               }}
-              className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+              aria-label={`Select airport ${airport.iata} in ${airport.city}, ${deps.length} departures, ${isClosed ? 'closed' : delayed.length > 0 ? `${delayed.length} delayed` : 'nominal'}`}
+              className={`w-full text-left p-3 rounded-xl border cursor-pointer transition-all flex items-center justify-between focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none ${
                 isClosed
                   ? 'bg-red-950/30 border-red-500/50 hover:border-red-400'
                   : delayed.length > 0
@@ -95,10 +111,10 @@ export const AirportsListDrawer: React.FC<AirportsListDrawerProps> = ({
                 )}
                 <div className="text-[10px] text-slate-500 mt-1">{deps.length} Departures</div>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
-    </div>
+    </aside>
   );
 };

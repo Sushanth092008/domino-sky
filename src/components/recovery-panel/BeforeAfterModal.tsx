@@ -1,17 +1,10 @@
 'use client';
 
-import React from 'react';
-import { SimulationResult, RecoveryAction } from '../../types/aviation';
+import React, { useEffect } from 'react';
+import { SimulationResult } from '../../types/aviation';
 import {
   X,
   TrendingDown,
-  ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
-  Clock,
-  Users,
-  Plane,
-  AlertTriangle,
 } from 'lucide-react';
 
 interface BeforeAfterModalProps {
@@ -29,6 +22,16 @@ export const BeforeAfterModal: React.FC<BeforeAfterModalProps> = ({
   onClose,
   onResetToBaseline,
 }) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const delayDelta = recoveredResult.totalDelayMinutes - baselineResult.totalDelayMinutes;
@@ -102,8 +105,6 @@ export const BeforeAfterModal: React.FC<BeforeAfterModalProps> = ({
     .map(baseF => {
       const recF = recoveredResult.flights.find(f => f.flightNumber === baseF.flightNumber)!;
       const delayDiff = recF.departureDelayMinutes - baseF.departureDelayMinutes;
-      const statusChanged = recF.status !== baseF.status;
-      const tailChanged = recF.aircraftTail !== baseF.aircraftTail;
 
       return {
         flightNumber: baseF.flightNumber,
@@ -124,13 +125,18 @@ export const BeforeAfterModal: React.FC<BeforeAfterModalProps> = ({
     .sort((a, b) => a.delayDiff - b.delayDiff);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 text-xs">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="before-after-modal-title"
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 text-xs"
+    >
       <div className="bg-slate-950 border border-slate-800 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Modal Header */}
         <div className="flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800">
           <div>
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <TrendingDown className="w-5 h-5 text-emerald-400" />
+            <h3 id="before-after-modal-title" className="text-base font-bold text-white flex items-center gap-2">
+              <TrendingDown aria-hidden="true" className="w-5 h-5 text-emerald-400" />
               Operational Recovery Audit & Impact Verification
             </h3>
             <p className="text-xs text-slate-400 mt-0.5 font-mono">
@@ -138,10 +144,12 @@ export const BeforeAfterModal: React.FC<BeforeAfterModalProps> = ({
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+            aria-label="Close recovery audit modal"
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded-lg transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X aria-hidden="true" className="w-5 h-5" />
           </button>
         </div>
 

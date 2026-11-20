@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Airport,
   DisruptionInput,
@@ -8,24 +8,16 @@ import {
   DisruptionSeverity,
   SimulatedFlight,
 } from '../../types/aviation';
-import { timeToMinutes, minutesToTime } from '../../engine/time-utils';
 import {
   X,
   CloudLightning,
-  AlertTriangle,
   Play,
-  RotateCcw,
   Sparkles,
-  Plane,
-  Clock,
-  ShieldAlert,
-  Flame,
-  Wind,
 } from 'lucide-react';
 
 interface DisruptionDrawerProps {
   airports: Airport[];
-  flights: SimulatedFlight[];
+  flights?: SimulatedFlight[];
   currentDisruption: DisruptionInput | null;
   onApplyDisruption: (disruption: DisruptionInput) => void;
   onResetDisruption: () => void;
@@ -77,12 +69,20 @@ const PRESET_SCENARIOS = [
 
 export const DisruptionDrawer: React.FC<DisruptionDrawerProps> = ({
   airports,
-  flights,
   currentDisruption,
   onApplyDisruption,
   onResetDisruption,
   onClose,
 }) => {
+  // Close drawer on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const [selectedAirport, setSelectedAirport] = useState<string>(currentDisruption?.airport || 'BOM');
   const [disruptionType, setDisruptionType] = useState<DisruptionType>(
     currentDisruption?.type || 'THUNDERSTORM'
@@ -103,17 +103,22 @@ export const DisruptionDrawer: React.FC<DisruptionDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-y-0 left-0 w-full max-w-md bg-[#0A0F1D]/95 backdrop-blur-2xl border-r border-[#1E2D44] shadow-2xl z-50 flex flex-col text-slate-100 animate-in slide-in-from-left duration-200">
+    <aside
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="disruption-drawer-title"
+      className="fixed inset-y-0 left-0 w-full max-w-md bg-[#0A0F1D]/95 backdrop-blur-2xl border-r border-[#1E2D44] shadow-2xl z-50 flex flex-col text-slate-100 animate-in slide-in-from-left duration-200"
+    >
       {/* Header */}
       <div className="p-4 border-b border-[#1E2D44] bg-[#0E1626]/80 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400">
+          <div aria-hidden="true" className="p-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400">
             <CloudLightning className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-extrabold font-mono text-white tracking-wider">
+            <h2 id="disruption-drawer-title" className="text-sm font-extrabold font-mono text-white tracking-wider">
               DISRUPTION SIMULATOR
-            </h3>
+            </h2>
             <span className="text-[10px] font-mono text-slate-400">
               Deterministic Airport & Airspace Stress Testing
             </span>
@@ -123,9 +128,10 @@ export const DisruptionDrawer: React.FC<DisruptionDrawerProps> = ({
         <button
           type="button"
           onClick={onClose}
-          className="p-1.5 text-slate-400 hover:text-white hover:bg-[#1E2D44] rounded-lg transition-colors"
+          aria-label="Close disruption simulator drawer"
+          className="p-1.5 text-slate-400 hover:text-white hover:bg-[#1E2D44] focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none rounded-lg transition-colors"
         >
-          <X className="w-5 h-5" />
+          <X aria-hidden="true" className="w-5 h-5" />
         </button>
       </div>
 
@@ -294,6 +300,6 @@ export const DisruptionDrawer: React.FC<DisruptionDrawerProps> = ({
           Simulate Disruption
         </button>
       </div>
-    </div>
+    </aside>
   );
 };

@@ -48,7 +48,7 @@ export function runSimulation(options: RunSimulationOptions): SimulationResult {
 
   // 1. Validate recovery actions
   const validatedActions: RecoveryAction[] = recoveryActions.map(action => {
-    const val = validateRecoveryAction(action, flights, spares, []);
+    const val = validateRecoveryAction(action, flights, spares);
     return {
       ...action,
       isFeasible: val.isFeasible,

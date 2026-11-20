@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   exportUnifiedDatasetJSON,
   exportFlightsCSV,
@@ -8,11 +8,9 @@ import {
   parseFlightsCSV,
   CompleteDatasetPackage,
 } from '../../services/dataset-loader';
-import { Airport, Flight, Aircraft, PassengerConnection, CrewAssignment } from '../../types/aviation';
 import {
   X,
   Upload,
-  Download,
   Database,
   CheckCircle2,
   AlertTriangle,
@@ -40,8 +38,17 @@ export const DatasetManagerModal: React.FC<DatasetManagerModalProps> = ({
   onLoadCustomDataset,
   onResetOfficialDataset,
 }) => {
-  const [jsonInput, setJsonInput] = useState<string>('');
   const [uploadStatus, setUploadStatus] = useState<{ success?: boolean; message?: string } | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -101,24 +108,31 @@ export const DatasetManagerModal: React.FC<DatasetManagerModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 text-xs select-none">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="dataset-modal-title"
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 text-xs select-none"
+    >
       <div className="bg-slate-950 border border-slate-800 rounded-2xl w-full max-w-2xl flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800">
           <div className="flex items-center gap-2">
-            <Database className="w-5 h-5 text-cyan-400" />
+            <Database aria-hidden="true" className="w-5 h-5 text-cyan-400" />
             <div>
-              <h3 className="text-base font-bold text-white">Dataset Management & File I/O</h3>
+              <h3 id="dataset-modal-title" className="text-base font-bold text-white">Dataset Management & File I/O</h3>
               <p className="text-xs text-slate-400 font-mono">
                 Single Source of Truth: 16 Airports | 70 Flights | 16 Aircraft
               </p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+            aria-label="Close dataset manager modal"
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none rounded-lg transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X aria-hidden="true" className="w-5 h-5" />
           </button>
         </div>
 

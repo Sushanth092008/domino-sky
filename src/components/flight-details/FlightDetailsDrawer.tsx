@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   SimulatedFlight,
   CrewAssignment,
@@ -14,14 +14,9 @@ import {
   ShieldCheck,
   ShieldAlert,
   AlertTriangle,
-  ArrowRight,
   UserCheck,
   Sparkles,
-  RotateCcw,
-  Info,
-  Calendar,
   Layers,
-  MapPin,
   CheckCircle2,
 } from 'lucide-react';
 
@@ -48,30 +43,39 @@ export const FlightDetailsDrawer: React.FC<FlightDetailsDrawerProps> = ({
   onQuickRecoverSpare,
   onQuickCancel,
 }) => {
+  // Close drawer on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   if (!flight) return null;
 
   const isDelayed = flight.departureDelayMinutes >= 15;
   const isCancelled = flight.status === 'CANCELLED';
   const isRecovered = flight.originalAssignedTail !== flight.aircraftTail;
 
-  // Passenger counts
-  const totalConnectingPax =
-    inboundConnections.reduce((sum, c) => sum + c.passengerCount, 0) +
-    outboundConnections.reduce((sum, c) => sum + c.passengerCount, 0);
-
   return (
-    <div className="fixed inset-y-0 right-0 w-full max-w-md bg-[#0A0F1D]/95 backdrop-blur-2xl border-l border-[#1E2D44] shadow-2xl z-50 flex flex-col text-slate-100 animate-in slide-in-from-right duration-200">
+    <aside
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="flight-drawer-title"
+      className="fixed inset-y-0 right-0 w-full max-w-md bg-[#0A0F1D]/95 backdrop-blur-2xl border-l border-[#1E2D44] shadow-2xl z-50 flex flex-col text-slate-100 animate-in slide-in-from-right duration-200"
+    >
       {/* 1. FLIGHTRADAR24 STYLE TOP HEADER */}
       <div className="p-4 border-b border-[#1E2D44] bg-[#0E1626]/80 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#F1C40F]/15 border border-[#F1C40F]/30 flex items-center justify-center text-[#F1C40F] shadow-sm">
+          <div aria-hidden="true" className="w-10 h-10 rounded-xl bg-[#F1C40F]/15 border border-[#F1C40F]/30 flex items-center justify-center text-[#F1C40F] shadow-sm">
             <Plane className="w-5 h-5 transform -rotate-45" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-lg font-extrabold font-mono text-white tracking-wider">
+              <h2 id="flight-drawer-title" className="text-lg font-extrabold font-mono text-white tracking-wider">
                 {flight.flightNumber}
-              </span>
+              </h2>
               <span className="text-[10px] font-mono font-bold bg-[#1E2D44] text-[#00F0FF] px-2 py-0.5 rounded border border-[#00F0FF]/30">
                 {flight.aircraftTail}
               </span>
@@ -85,10 +89,11 @@ export const FlightDetailsDrawer: React.FC<FlightDetailsDrawerProps> = ({
         <button
           type="button"
           onClick={onClose}
-          className="p-1.5 text-slate-400 hover:text-white hover:bg-[#1E2D44] rounded-lg transition-colors"
+          aria-label={`Close details for flight ${flight.flightNumber}`}
+          className="p-1.5 text-slate-400 hover:text-white hover:bg-[#1E2D44] focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none rounded-lg transition-colors"
           title="Close details"
         >
-          <X className="w-5 h-5" />
+          <X aria-hidden="true" className="w-5 h-5" />
         </button>
       </div>
 
@@ -349,6 +354,6 @@ export const FlightDetailsDrawer: React.FC<FlightDetailsDrawerProps> = ({
           </button>
         )}
       </div>
-    </div>
+    </aside>
   );
 };

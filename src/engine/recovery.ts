@@ -1,7 +1,7 @@
 // DOMINO SKY - Operational Recovery Action Engine
 // Validates, evaluates, and executes airline recovery strategies: Spare Injection, Cancellation, Aircraft Swap, Connection Hold
 
-import { RecoveryAction, Flight, Aircraft, SimulatedFlight, DisruptionInput } from '../types/aviation';
+import { RecoveryAction, Flight, Aircraft } from '../types/aviation';
 import { timeToMinutes } from './time-utils';
 
 export interface RecoveryPlanState {
@@ -13,15 +13,12 @@ export interface RecoveryPlanState {
 export function validateRecoveryAction(
   action: RecoveryAction,
   flights: Flight[],
-  spares: Aircraft[],
-  currentSimulatedFlights: SimulatedFlight[]
+  spares: Aircraft[]
 ): { isFeasible: boolean; reason?: string } {
   const flight = flights.find(f => f.flightNumber === action.targetFlightNumber);
   if (!flight) {
     return { isFeasible: false, reason: `Flight ${action.targetFlightNumber} does not exist in the schedule.` };
   }
-
-  const currentSim = currentSimulatedFlights.find(f => f.flightNumber === action.targetFlightNumber);
 
   switch (action.type) {
     case 'ASSIGN_SPARE': {

@@ -15,14 +15,14 @@ import {
   Cell,
   Legend,
 } from 'recharts';
-import { BarChart3, Users, Clock, AlertTriangle, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 
 interface OperationsAnalyticsProps {
   result: SimulationResult;
-  airports: Airport[];
+  airports?: Airport[];
 }
 
-export const OperationsAnalytics: React.FC<OperationsAnalyticsProps> = ({ result, airports }) => {
+export const OperationsAnalytics: React.FC<OperationsAnalyticsProps> = ({ result }) => {
   // Chart 1: Delays by Airport
   const airportChartData = result.mostDisruptedAirports.map(a => ({
     iata: a.iata,
